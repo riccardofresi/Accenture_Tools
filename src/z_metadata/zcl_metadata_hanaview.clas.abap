@@ -75,7 +75,7 @@ types: begin of l_union_header,
 
 types: begin of l_union_details,
        id_union type c length 255, id1 type c length 255, id2 type c length 255, id3 type c length 255,
-       viewAttribute type c length 255, datatype type c length 255, length type c length 255, scale type c length 255, source_input type c length 500, end of l_union_details,
+       viewAttribute type c length 255, datatype type c length 255, length type c length 255, scale type c length 255, source_input type c length 900, end of l_union_details,
        p_union_details type standard table of l_union_details with empty key.
 
 types: begin of l_aggr_header,
