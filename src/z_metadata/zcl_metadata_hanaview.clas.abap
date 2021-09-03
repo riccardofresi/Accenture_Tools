@@ -6,7 +6,7 @@ class zcl_metadata_hanaview definition
   public section.
   interfaces: if_amdp_marker_hdb.
 
-  types: p_calcview type c length 63.
+  types: p_calcview type c length 64.
 
   types: begin of l_dom,
   " unique id of the node
