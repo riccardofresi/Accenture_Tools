@@ -3,7 +3,7 @@
  <asx:abap xmlns:asx="http://www.sap.com/abapxml" version="1.0">
   <asx:values>
    <PROGDIR>
-    <NAME>Z_METADATA_HANAVIEW</NAME>
+    <NAME>Z_METADATA_HANAVIEW_FIELD</NAME>
     <SUBC>1</SUBC>
     <RLOAD>E</RLOAD>
     <FIXPT>X</FIXPT>
@@ -12,7 +12,7 @@
    <DYNPROS>
     <item>
      <HEADER>
-      <PROGRAM>Z_METADATA_HANAVIEW</PROGRAM>
+      <PROGRAM>Z_METADATA_HANAVIEW_FIELD</PROGRAM>
       <SCREEN>0100</SCREEN>
       <LANGUAGE>E</LANGUAGE>
       <DESCRIPT>TabStrip</DESCRIPT>
@@ -318,7 +318,7 @@
     </item>
     <item>
      <HEADER>
-      <PROGRAM>Z_METADATA_HANAVIEW</PROGRAM>
+      <PROGRAM>Z_METADATA_HANAVIEW_FIELD</PROGRAM>
       <SCREEN>0101</SCREEN>
       <LANGUAGE>E</LANGUAGE>
       <DESCRIPT>Model</DESCRIPT>
@@ -394,7 +394,7 @@
     </item>
     <item>
      <HEADER>
-      <PROGRAM>Z_METADATA_HANAVIEW</PROGRAM>
+      <PROGRAM>Z_METADATA_HANAVIEW_FIELD</PROGRAM>
       <SCREEN>0102</SCREEN>
       <LANGUAGE>E</LANGUAGE>
       <DESCRIPT>Variables</DESCRIPT>
@@ -466,7 +466,7 @@
     </item>
     <item>
      <HEADER>
-      <PROGRAM>Z_METADATA_HANAVIEW</PROGRAM>
+      <PROGRAM>Z_METADATA_HANAVIEW_FIELD</PROGRAM>
       <SCREEN>0103</SCREEN>
       <LANGUAGE>E</LANGUAGE>
       <DESCRIPT>Datasources</DESCRIPT>
@@ -538,7 +538,7 @@
     </item>
     <item>
      <HEADER>
-      <PROGRAM>Z_METADATA_HANAVIEW</PROGRAM>
+      <PROGRAM>Z_METADATA_HANAVIEW_FIELD</PROGRAM>
       <SCREEN>0104</SCREEN>
       <LANGUAGE>E</LANGUAGE>
       <DESCRIPT>Projection Header</DESCRIPT>
@@ -610,7 +610,7 @@
     </item>
     <item>
      <HEADER>
-      <PROGRAM>Z_METADATA_HANAVIEW</PROGRAM>
+      <PROGRAM>Z_METADATA_HANAVIEW_FIELD</PROGRAM>
       <SCREEN>0105</SCREEN>
       <LANGUAGE>E</LANGUAGE>
       <DESCRIPT>Projection Details</DESCRIPT>
@@ -682,7 +682,7 @@
     </item>
     <item>
      <HEADER>
-      <PROGRAM>Z_METADATA_HANAVIEW</PROGRAM>
+      <PROGRAM>Z_METADATA_HANAVIEW_FIELD</PROGRAM>
       <SCREEN>0106</SCREEN>
       <LANGUAGE>E</LANGUAGE>
       <DESCRIPT>Join Header</DESCRIPT>
@@ -754,7 +754,7 @@
     </item>
     <item>
      <HEADER>
-      <PROGRAM>Z_METADATA_HANAVIEW</PROGRAM>
+      <PROGRAM>Z_METADATA_HANAVIEW_FIELD</PROGRAM>
       <SCREEN>0107</SCREEN>
       <LANGUAGE>E</LANGUAGE>
       <DESCRIPT>Join Details</DESCRIPT>
@@ -826,7 +826,7 @@
     </item>
     <item>
      <HEADER>
-      <PROGRAM>Z_METADATA_HANAVIEW</PROGRAM>
+      <PROGRAM>Z_METADATA_HANAVIEW_FIELD</PROGRAM>
       <SCREEN>0108</SCREEN>
       <LANGUAGE>E</LANGUAGE>
       <DESCRIPT>Union Header</DESCRIPT>
@@ -898,7 +898,7 @@
     </item>
     <item>
      <HEADER>
-      <PROGRAM>Z_METADATA_HANAVIEW</PROGRAM>
+      <PROGRAM>Z_METADATA_HANAVIEW_FIELD</PROGRAM>
       <SCREEN>0109</SCREEN>
       <LANGUAGE>E</LANGUAGE>
       <DESCRIPT>Union Details</DESCRIPT>
@@ -970,7 +970,7 @@
     </item>
     <item>
      <HEADER>
-      <PROGRAM>Z_METADATA_HANAVIEW</PROGRAM>
+      <PROGRAM>Z_METADATA_HANAVIEW_FIELD</PROGRAM>
       <SCREEN>0110</SCREEN>
       <LANGUAGE>E</LANGUAGE>
       <DESCRIPT>Aggregation Header</DESCRIPT>
@@ -1042,7 +1042,7 @@
     </item>
     <item>
      <HEADER>
-      <PROGRAM>Z_METADATA_HANAVIEW</PROGRAM>
+      <PROGRAM>Z_METADATA_HANAVIEW_FIELD</PROGRAM>
       <SCREEN>0111</SCREEN>
       <LANGUAGE>E</LANGUAGE>
       <DESCRIPT>Aggregation Details</DESCRIPT>
@@ -1114,7 +1114,7 @@
     </item>
     <item>
      <HEADER>
-      <PROGRAM>Z_METADATA_HANAVIEW</PROGRAM>
+      <PROGRAM>Z_METADATA_HANAVIEW_FIELD</PROGRAM>
       <SCREEN>0112</SCREEN>
       <LANGUAGE>E</LANGUAGE>
       <DESCRIPT>Rank Header</DESCRIPT>
@@ -1186,7 +1186,7 @@
     </item>
     <item>
      <HEADER>
-      <PROGRAM>Z_METADATA_HANAVIEW</PROGRAM>
+      <PROGRAM>Z_METADATA_HANAVIEW_FIELD</PROGRAM>
       <SCREEN>0113</SCREEN>
       <LANGUAGE>E</LANGUAGE>
       <DESCRIPT>Rank Details</DESCRIPT>
@@ -1257,168 +1257,6 @@
      </FLOW_LOGIC>
     </item>
    </DYNPROS>
-   <CUA>
-    <ADM>
-     <ACTCODE>000001</ACTCODE>
-     <MENCODE>000008</MENCODE>
-     <PFKCODE>000001</PFKCODE>
-    </ADM>
-    <STA>
-     <RSMPE_STAT>
-      <CODE>D0100</CODE>
-      <MODAL>D</MODAL>
-      <ACTCODE>000001</ACTCODE>
-      <PFKCODE>000001</PFKCODE>
-      <BUTCODE>0001</BUTCODE>
-      <INT_NOTE>PF Status D0100</INT_NOTE>
-     </RSMPE_STAT>
-    </STA>
-    <FUN>
-     <RSMPE_FUNT>
-      <CODE>BACK</CODE>
-      <TEXTNO>001</TEXTNO>
-      <TEXT_TYPE>S</TEXT_TYPE>
-      <FUN_TEXT>Back</FUN_TEXT>
-      <PATH>B</PATH>
-     </RSMPE_FUNT>
-     <RSMPE_FUNT>
-      <CODE>CANC</CODE>
-      <TEXTNO>001</TEXTNO>
-      <TEXT_TYPE>S</TEXT_TYPE>
-      <FUN_TEXT>Cancel</FUN_TEXT>
-      <PATH>A</PATH>
-     </RSMPE_FUNT>
-     <RSMPE_FUNT>
-      <CODE>EXIT</CODE>
-      <TEXTNO>001</TEXTNO>
-      <TEXT_TYPE>S</TEXT_TYPE>
-      <FUN_TEXT>Exit</FUN_TEXT>
-      <PATH>X</PATH>
-     </RSMPE_FUNT>
-    </FUN>
-    <MEN>
-     <RSMPE_MEN>
-      <CODE>000001</CODE>
-      <NO>01</NO>
-      <REF_TYPE>F</REF_TYPE>
-      <REF_CODE>EXIT</REF_CODE>
-      <REF_NO>001</REF_NO>
-     </RSMPE_MEN>
-     <RSMPE_MEN>
-      <CODE>000007</CODE>
-      <NO>01</NO>
-      <REF_TYPE>F</REF_TYPE>
-      <REF_CODE>CANC</REF_CODE>
-      <REF_NO>001</REF_NO>
-     </RSMPE_MEN>
-     <RSMPE_MEN>
-      <CODE>000008</CODE>
-      <NO>01</NO>
-      <REF_TYPE>F</REF_TYPE>
-      <REF_CODE>BACK</REF_CODE>
-      <REF_NO>001</REF_NO>
-     </RSMPE_MEN>
-    </MEN>
-    <MTX>
-     <RSMPE_MNLT>
-      <CODE>000001</CODE>
-      <TEXT_TYPE>S</TEXT_TYPE>
-      <TEXT>Report</TEXT>
-      <PATH>R</PATH>
-      <INT_NOTE>PF Status D0100</INT_NOTE>
-     </RSMPE_MNLT>
-     <RSMPE_MNLT>
-      <CODE>000007</CODE>
-      <TEXT_TYPE>S</TEXT_TYPE>
-      <TEXT>Edit</TEXT>
-      <PATH>E</PATH>
-     </RSMPE_MNLT>
-     <RSMPE_MNLT>
-      <CODE>000008</CODE>
-      <TEXT_TYPE>S</TEXT_TYPE>
-      <TEXT>Goto</TEXT>
-      <PATH>G</PATH>
-     </RSMPE_MNLT>
-    </MTX>
-    <ACT>
-     <RSMPE_ACT>
-      <CODE>000001</CODE>
-      <NO>01</NO>
-      <MENUCODE>000001</MENUCODE>
-     </RSMPE_ACT>
-     <RSMPE_ACT>
-      <CODE>000001</CODE>
-      <NO>02</NO>
-      <MENUCODE>000007</MENUCODE>
-     </RSMPE_ACT>
-     <RSMPE_ACT>
-      <CODE>000001</CODE>
-      <NO>03</NO>
-      <MENUCODE>000008</MENUCODE>
-     </RSMPE_ACT>
-    </ACT>
-    <PFK>
-     <RSMPE_PFK>
-      <CODE>000001</CODE>
-      <PFNO>03</PFNO>
-      <FUNCODE>BACK</FUNCODE>
-      <FUNNO>001</FUNNO>
-     </RSMPE_PFK>
-     <RSMPE_PFK>
-      <CODE>000001</CODE>
-      <PFNO>12</PFNO>
-      <FUNCODE>CANC</FUNCODE>
-      <FUNNO>001</FUNNO>
-     </RSMPE_PFK>
-     <RSMPE_PFK>
-      <CODE>000001</CODE>
-      <PFNO>15</PFNO>
-      <FUNCODE>EXIT</FUNCODE>
-      <FUNNO>001</FUNNO>
-     </RSMPE_PFK>
-    </PFK>
-    <SET>
-     <RSMPE_STAF>
-      <STATUS>D0100</STATUS>
-      <FUNCTION>BACK</FUNCTION>
-     </RSMPE_STAF>
-     <RSMPE_STAF>
-      <STATUS>D0100</STATUS>
-      <FUNCTION>CANC</FUNCTION>
-     </RSMPE_STAF>
-     <RSMPE_STAF>
-      <STATUS>D0100</STATUS>
-      <FUNCTION>EXIT</FUNCTION>
-     </RSMPE_STAF>
-    </SET>
-    <DOC>
-     <RSMPE_ATRT>
-      <OBJ_TYPE>A</OBJ_TYPE>
-      <OBJ_CODE>000001</OBJ_CODE>
-      <MODAL>D</MODAL>
-      <INT_NOTE>PF Status D0100</INT_NOTE>
-     </RSMPE_ATRT>
-     <RSMPE_ATRT>
-      <OBJ_TYPE>P</OBJ_TYPE>
-      <OBJ_CODE>000001</OBJ_CODE>
-      <MODAL>D</MODAL>
-      <INT_NOTE>PF Status D0100</INT_NOTE>
-     </RSMPE_ATRT>
-     <RSMPE_ATRT>
-      <OBJ_TYPE>B</OBJ_TYPE>
-      <OBJ_CODE>000001</OBJ_CODE>
-      <SUB_CODE>0001</SUB_CODE>
-      <MODAL>D</MODAL>
-      <INT_NOTE>PF Status D0100</INT_NOTE>
-     </RSMPE_ATRT>
-    </DOC>
-    <TIT>
-     <RSMPE_TITT>
-      <CODE>TABSTRIP</CODE>
-      <TEXT>Hana View Metadata</TEXT>
-     </RSMPE_TITT>
-    </TIT>
-   </CUA>
    <TPOOL>
     <item>
      <ID>R</ID>
@@ -1447,6 +1285,12 @@
      <ID>S</ID>
      <KEY>P_DS</KEY>
      <ENTRY>Datasource</ENTRY>
+     <LENGTH>18</LENGTH>
+    </item>
+    <item>
+     <ID>S</ID>
+     <KEY>P_FIELD</KEY>
+     <ENTRY>Field Name</ENTRY>
      <LENGTH>18</LENGTH>
     </item>
     <item>
@@ -1484,12 +1328,6 @@
      <KEY>P_VAR</KEY>
      <ENTRY>Variable</ENTRY>
      <LENGTH>16</LENGTH>
-    </item>
-    <item>
-     <ID>S</ID>
-     <KEY>P_VERS</KEY>
-     <ENTRY>Version</ENTRY>
-     <LENGTH>15</LENGTH>
     </item>
    </TPOOL>
   </asx:values>

@@ -8,6 +8,13 @@ class zcl_metadata_hanaview definition
 
   types: p_calcview type c length 64.
 
+  types: begin of l_calc_vers,
+         calcview type c length 64,
+         version type i,
+         activation_date like sy-datum,
+         end of l_calc_vers,
+         p_calc_vers type standard table of l_calc_vers.
+
   types: begin of l_dom,
   " unique id of the node
     node_id  type i
@@ -43,20 +50,22 @@ class zcl_metadata_hanaview definition
 
 
 types: begin of l_variables,
-       id_variable type c length 255, datatype type c length 255, length type c length 3, defaultValue type c length 255, defaultExpression type c length 255, procedureName type c length 255, datasource_variable type c length 255,
+       id_variable type c length 255, datatype type c length 255, length type c length 3, defaultValue type c length 255, defaultExpression type c length 255, procedureName type c length 255,
+*       datasource_variable type c length 255,
+       dataSource type c length 255, sourceVariable type c length 255,
        end of l_variables,
        p_variables type standard table of l_variables with empty key.
 
 types: begin of l_datasources,
-       node_id type c length 255, id_datasource type c length 255, type type c length 255, CalculationView type c length 255, schemaName type c length 255, columnObjectName type c length 255, end of l_datasources,
+       id_datasource type c length 255, type type c length 255, CalculationView type c length 255, schemaName type c length 255, columnObjectName type c length 255, end of l_datasources,
        p_datasources type standard table of l_datasources with empty key.
 
 types: begin of l_proj_header,
-       id1 type c length 255, id_projection type c length 255, id_type type c length 255, id_input type c length 255, filter type c length 255, end of l_proj_header,
+       id1 type c length 255, id_projection type c length 255, id_type type c length 255, id_input type c length 255, filter type c length 955, end of l_proj_header,
        p_proj_header type standard table of l_proj_header with empty key.
 
 types: begin of l_proj_details,
-       id_projection type c length 255, id_input type c length 255, id_field type c length 255, source type c length 255, datatype type c length 255, length type c length 255, formula type c length 255, end of l_proj_details,
+       id_projection type c length 255, id_input type c length 255, id_field type c length 255, source type c length 255, datatype type c length 255, length type c length 255, formula type c length 955, end of l_proj_details,
        p_proj_details type standard table of l_proj_details with empty key.
 
 types: begin of l_join_header,
@@ -66,7 +75,7 @@ types: begin of l_join_header,
 
 types: begin of l_join_details,
        id_join type c length 255, id1 type c length 255, id2 type c length 255, id3 type c length 255, viewAttribute type c length 255, datatype type c length 255,
-       length type c length 255, formula type c length 255, source_left type c length 255, source_right type c length 255, end of l_join_details,
+       length type c length 255, formula type c length 255, source_left type c length 255,id_left type c length 255, source_right type c length 255,id_right type c length 255, end of l_join_details,
        p_join_details type standard table of l_join_details with empty key.
 
 types: begin of l_union_header,
@@ -97,7 +106,7 @@ types: begin of l_rank_details,
        p_rank_details type standard table of l_rank_details with empty key.
 
 types: begin of l_details,
-       id1 type c length 255, id2 type c length 255, id3 type c length 255,
+
        id_model type c length 255, id_field type c length 255, aggregationType type c length 255,
        datatype type c length 255, length type c length 255, scale type c length 255,
        formula type c length 255, mapping type c length 255, client type c length 255,
@@ -106,11 +115,25 @@ types: begin of l_details,
        attributeName type c length 255, valueFilter type c length 255, end of l_details,
        p_details type standard table of l_details with empty key.
 
+types: begin of l_dependencies,
+
+       id_step type c length 255, id_type type c length 255, step_nm type i,
+       source type c length 255, end of l_dependencies,
+       p_dependencies type standard table of l_dependencies with empty key.
+
+
    class-methods get_xml_from_hana_view
         importing
             value(p_calcview) type p_calcview
+            value(p_version) type i default 0
         exporting
             value(p_xml) type string.
+
+   class-methods get_hana_view_version
+        importing
+            value(p_calcview) type p_calcview
+        exporting
+            value(p_calc_vers) type p_calc_vers.
 
    class-methods p_decode_xml_entities
         importing value(p_encoded_text) type string
@@ -202,6 +225,12 @@ types: begin of l_details,
         exporting
          value(p_details) type p_details.
 
+   class-methods get_dependencies
+        importing
+         value(tab_dom) type p_dom
+        exporting
+         value(p_dependencies) type p_dependencies.
+
   protected section.
   private section.
 endclass.
@@ -215,15 +244,58 @@ METHOD get_xml_from_hana_view BY DATABASE PROCEDURE
                              LANGUAGE SQLSCRIPT
                              OPTIONS read-only.
 
+declare maxvers int;
 
+select max( version_id) into maxvers
+FROM    _SYS_REPO.ACTIVE_OBJECT
+where OBJECT_NAME   = :p_calcview
+--OBJECT_NAME = 'AAATEST001'
+AND     OBJECT_SUFFIX = 'calculationview';
+
+if :p_version = 0 or :p_version = maxvers then
 SELECT  CDATA  into p_xml
 FROM    _SYS_REPO.ACTIVE_OBJECT
 WHERE
---PACKAGE_ID    = 'my.package.name'
+--PACKAGE_ID    = 'my.package.name'"_SYS_REPO"."OBJECT_HISTORY"
 --AND
 OBJECT_NAME   = :p_calcview
 --OBJECT_NAME = 'AAATEST001'
 AND     OBJECT_SUFFIX = 'calculationview';
+else
+SELECT  CVERSION  into p_xml
+FROM    _SYS_REPO.OBJECT_HISTORY
+WHERE
+--PACKAGE_ID    = 'my.package.name'"_SYS_REPO"."OBJECT_HISTORY"
+--AND
+OBJECT_NAME   = :p_calcview
+AND VERSION_ID = :P_VERSION
+--OBJECT_NAME = 'AAATEST001'
+AND     OBJECT_SUFFIX = 'calculationview';
+END IF;
+
+endmethod.
+
+method get_hana_view_version by database procedure for hdb language sqlscript options read-only.
+
+p_calc_vers = select * from (
+SELECT  object_name as calcview, version_id as version, TO_VARCHAR(activated_at, 'YYYYMMDD') as activation_date
+FROM    _SYS_REPO.ACTIVE_OBJECT
+WHERE
+--PACKAGE_ID    = 'my.package.name'"_SYS_REPO"."OBJECT_HISTORY"
+--AND
+OBJECT_NAME   = :p_calcview
+--OBJECT_NAME = 'AAATEST001'
+AND     OBJECT_SUFFIX = 'calculationview'
+union
+SELECT  object_name as calcview, version_id as version, TO_VARCHAR(activated_at, 'YYYYMMDD') as activation_date
+FROM    _SYS_REPO.OBJECT_HISTORY
+WHERE
+--PACKAGE_ID    = 'my.package.name'"_SYS_REPO"."OBJECT_HISTORY"
+--AND
+OBJECT_NAME   = :p_calcview
+--OBJECT_NAME = 'AAATEST001'
+AND     OBJECT_SUFFIX = 'calculationview'
+) order by version desc ;
 
 endmethod.
 
@@ -436,7 +508,7 @@ method p_parse_xml BY DATABASE PROCEDURE
       , v_index             position
       , v_node_name         node_name
       from dummy;
-      p_dom = unnest(
+      p_dom_ERROR = unnest(
         :v_node_ids
       , :v_parent_node_ids
       , :v_node_types
@@ -453,6 +525,15 @@ method p_parse_xml BY DATABASE PROCEDURE
       , pos
       , len
       );
+
+      P_DOM = SELECT node_id
+      , parent_node_id
+      , node_type
+      , node_name
+      , cast(BINTOSTR(cast(node_value as binary)) as varchar) as node_value
+      , pos
+      , len FROM :P_DOM_ERROR;
+
     end;
 
   p_strip_empty_text = 1;
@@ -601,7 +682,7 @@ method p_parse_xml BY DATABASE PROCEDURE
     v_index = v_index + v_length;
   end while;
 
-  p_dom = unnest(
+  p_dom1 = unnest(
     :v_node_ids
   , :v_parent_node_ids
   , :v_node_types
@@ -618,6 +699,14 @@ method p_parse_xml BY DATABASE PROCEDURE
   , pos
   , len
   );
+
+   P_DOM = SELECT node_id
+  , parent_node_id
+  , node_type
+  , node_name
+  , cast(BINTOSTR(cast(node_value as binary)) as varchar) as node_value
+  , pos
+  , len  FROM :P_DOM1;
 
 endmethod.
 
@@ -638,7 +727,7 @@ left outer join :tab_dom lev2 on lev1.node_id = lev2.parent_node_id
 left outer join :tab_dom lev3 on lev2.node_id = lev3.parent_node_id
 left outer join :tab_dom lev4 on lev3.node_id = lev4.parent_node_id
 left outer join :tab_dom lev5 on lev4.node_id = lev5.parent_node_id
-where      lev1.node_type = 257            -- get us all elements
+where      lev1.node_type = 1            -- get us all elements
 and        lev1.node_name in ('variable')
 group by lev1.node_id;
 
@@ -653,36 +742,40 @@ left outer join :tab_dom lev4 on lev3.node_id = lev4.parent_node_id
 left outer join :tab_dom lev5 on lev4.node_id = lev5.parent_node_id
 left outer join :tab_dom lev6 on lev5.node_id = lev6.parent_node_id
 left outer join :tab_dom lev7 on lev6.node_id = lev7.parent_node_id
-where      lev1.node_type = 257           -- get us all elements
+where      lev1.node_type = 1           -- get us all elements
 and        lev1.node_name in ('variableMappings')
 group by lev1.node_id, lev2.node_id
 ;
 
-tab_variable_mapping_aggr = select id1, targetVariable, string_agg(datasource_variable, ', ') as datasource_variable
-from (
-select id1, id2 , targetVariable, dataSource || ' (' || sourceVariable || ')' as datasource_variable from :tab_variable_mapping
-)
-group by  id1, targetVariable;
+tab_variable_mapping_aggr =
+--select id1, targetVariable, string_agg(datasource_variable, ', ') as datasource_variable
+--from (
+select id1, id2 , targetVariable, dataSource || ' (' || sourceVariable || ')' as datasource_variable , dataSource , sourceVariable from :tab_variable_mapping
+--)
+--group by  id1, targetVariable
+;
 
-p_variables = select id_variable, datatype, length, defaultValue, defaultExpression, procedureName, datasource_variable from :tab_variable_header as a left outer join :tab_variable_mapping_aggr as b on  a.id_variable = b.targetVariable;
+p_variables = select id_variable, datatype, length, defaultValue, defaultExpression, procedureName, dataSource , sourceVariable from :tab_variable_header as a left outer join :tab_variable_mapping_aggr as b on  a.id_variable = b.targetVariable;
 
 endmethod.
 
 method get_datasources by database  procedure for hdb language sqlscript options read-only.
 
-p_datasources = select     lev1.node_id ,
+tmp_datasources = select     lev1.node_id ,
            max(case when lev2.node_name = 'id' then cast(BINTOSTR(cast(lev2.node_value as  binary)) as varchar) end) as id_datasource,
            max(case when lev2.node_name = 'type' then cast(BINTOSTR(cast(lev2.node_value as  binary)) as varchar) end) as type,
-           max(case when lev3.node_name = '#text' then cast(BINTOSTR(cast(lev3.node_value as  binary)) as varchar) end) as CalculationView,
+           max(case when lev3.node_name = '#text' then substr_after(replace(cast(BINTOSTR(cast(lev3.node_value as  binary)) as varchar) ,'/calculationviews',''), '/')end) as CalculationView,
            max(case when lev3.node_name = 'schemaName' then cast(BINTOSTR(cast(lev3.node_value as  binary)) as varchar) end) as schemaName,
            max(case when lev3.node_name = 'columnObjectName' then cast(BINTOSTR(cast(lev3.node_value as  binary)) as varchar) end) as columnObjectName
 from       :tab_dom lev1
 left outer join :tab_dom lev2 on lev1.node_id = lev2.parent_node_id
 left outer join :tab_dom lev3 on lev2.node_id = lev3.parent_node_id
 --left outer join :tab_dom lev4 on lev3.node_id = lev4.parent_node_id
-where      lev1.node_type = 257            -- get us all elements
+where      lev1.node_type = 1            -- get us all elements
 and        lev1.node_name in ('DataSource')
 group by lev1.node_id;
+
+p_datasources = select id_datasource, type, CalculationView, schemaName, columnObjectName from :tmp_datasources;
 
 endmethod.
 
@@ -696,7 +789,7 @@ max(case when lev3.node_name = 'node' then replace(cast(BINTOSTR(cast(lev3.node_
 from       :tab_dom lev1
 left outer join :tab_dom lev2 on lev1.node_id = lev2.parent_node_id
 left outer join :tab_dom lev3 on lev2.node_id = lev3.parent_node_id
-where      lev1.node_type = 257           -- get us all elements
+where      lev1.node_type = 1           -- get us all elements
 and        lev1.node_name in ('calculationView')
 group by lev1.node_id
 having max(case when lev2.node_name = 'xsi:type' then cast(BINTOSTR(cast(lev2.node_value as  binary)) as varchar) end) = 'Calculation:ProjectionView';
@@ -735,7 +828,7 @@ left outer join :tab_dom lev2 on lev1.node_id = lev2.parent_node_id
 left outer join :tab_dom lev3 on lev2.node_id = lev3.parent_node_id
 left outer join :tab_dom lev4 on lev3.node_id = lev4.parent_node_id
 left outer join :tab_dom lev5 on lev4.node_id = lev5.parent_node_id
-where      lev1.node_type = 257           -- get us all elements
+where      lev1.node_type = 1           -- get us all elements
 and        lev1.node_name in ('calculationView')
 
 group by lev1.node_id, lev2.node_id, lev3.node_id, header.id_projection, header.id_type, header.id_input;
@@ -759,7 +852,7 @@ left outer join :tab_dom lev2 on lev1.node_id = lev2.parent_node_id
 left outer join :tab_dom lev3 on lev2.node_id = lev3.parent_node_id
 left outer join :tab_dom lev4 on lev3.node_id = lev4.parent_node_id
 left outer join :tab_dom lev5 on lev4.node_id = lev5.parent_node_id
-where      lev1.node_type = 257           -- get us all elements
+where      lev1.node_type = 1           -- get us all elements
 and        lev1.node_name in ('calculationView')
 
 group by lev1.node_id, lev2.node_id, lev3.node_id, header.id_projection, header.id_type, header.id_input;
@@ -783,7 +876,7 @@ string_agg(case when lev2.node_name = 'joinAttribute' then cast(BINTOSTR(cast(le
 from       :tab_dom lev1
 left outer join :tab_dom lev2 on lev1.node_id = lev2.parent_node_id
 left outer join :tab_dom lev3 on lev2.node_id = lev3.parent_node_id
-where      lev1.node_type = 257           -- get us all elements
+where      lev1.node_type = 1           -- get us all elements
 and        lev1.node_name in ('calculationView')
 group by lev1.node_id
 having max(case when lev2.node_name = 'xsi:type' then cast(BINTOSTR(cast(lev2.node_value as  binary)) as varchar) end) = 'Calculation:JoinView';
@@ -794,7 +887,7 @@ rank() over(partition by lev1.node_id order by lev2.node_id asc) as rank
 from       :tab_dom lev1
 left outer join :tab_dom lev2 on lev1.node_id = lev2.parent_node_id
 left outer join :tab_dom lev3 on lev2.node_id = lev3.parent_node_id
-where      lev1.node_type = 257           -- get us all elements
+where      lev1.node_type = 1           -- get us all elements
 and        lev1.node_name in ('calculationView')
 and lev3.node_name = 'node';
 
@@ -833,7 +926,7 @@ left outer join :tab_dom lev3 on lev2.node_id = lev3.parent_node_id
 left outer join :tab_dom lev4 on lev3.node_id = lev4.parent_node_id
 left outer join :tab_dom lev5 on lev4.node_id = lev5.parent_node_id
 
-where      lev1.node_type = 257           -- get us all elements
+where      lev1.node_type = 1           -- get us all elements
 and        lev1.node_name in ('calculationView')
 group by header.id_join,
            lev1.node_id ,
@@ -859,7 +952,7 @@ left outer join :tab_dom lev4 on lev3.node_id = lev4.parent_node_id
 left outer join :tab_dom lev5 on lev4.node_id = lev5.parent_node_id
 
 
-where      lev1.node_type = 257           -- get us all elements
+where      lev1.node_type = 1           -- get us all elements
 and        lev1.node_name in ('calculationView')
 
 group by lev1.node_id, lev2.node_id, lev3.node_id, header.id_join, header.id_type;
@@ -873,7 +966,9 @@ a.datatype,
 a.length,
 a.formula,
 max(case when c.node_id_left = b.id2 then b.source end) as source_left,
-max(case when c.node_id_right = b.id2 then b.source end) as source_right  from :tab_join_list as a
+c.id_left,
+max(case when c.node_id_right = b.id2 then b.source end) as source_right,
+c.id_right  from :tab_join_list as a
 left join :tab_join_mapping as b on a.id1 = b.id1 and a.viewattribute = b.target
 inner join :tab_join_header as c on a.id1 = c.id1
 where a.viewAttribute is not null
@@ -884,7 +979,9 @@ group by a.id_join,
 a.viewAttribute,
 a.datatype,
 a.length,
-a.formula ;
+a.formula,
+id_left,
+ id_right;
 
 endmethod.
 
@@ -896,7 +993,7 @@ max(case when lev2.node_name = 'id' then cast(BINTOSTR(cast(lev2.node_value as  
 from       :tab_dom lev1
 left outer join :tab_dom lev2 on lev1.node_id = lev2.parent_node_id
 left outer join :tab_dom lev3 on lev2.node_id = lev3.parent_node_id
-where      lev1.node_type = 257           -- get us all elements
+where      lev1.node_type = 1           -- get us all elements
 and        lev1.node_name in ('calculationView')
 group by lev1.node_id
 having max(case when lev2.node_name = 'xsi:type' then cast(BINTOSTR(cast(lev2.node_value as  binary)) as varchar) end) = 'Calculation:UnionView';
@@ -907,7 +1004,7 @@ rank() over(partition by lev1.node_id order by lev2.node_id asc) as rank
 from       :tab_dom lev1
 left outer join :tab_dom lev2 on lev1.node_id = lev2.parent_node_id
 left outer join :tab_dom lev3 on lev2.node_id = lev3.parent_node_id
-where      lev1.node_type = 257           -- get us all elements
+where      lev1.node_type = 1           -- get us all elements
 and        lev1.node_name in ('calculationView')
 and lev3.node_name = 'node';
 
@@ -935,7 +1032,7 @@ left outer join :tab_dom lev3 on lev2.node_id = lev3.parent_node_id
 left outer join :tab_dom lev4 on lev3.node_id = lev4.parent_node_id
 left outer join :tab_dom lev5 on lev4.node_id = lev5.parent_node_id
 
-where      lev1.node_type = 257           -- get us all elements
+where      lev1.node_type = 1           -- get us all elements
 and        lev1.node_name in ('calculationView')
 group by header.id_union,
            lev1.node_id ,
@@ -958,7 +1055,7 @@ left outer join :tab_dom lev4 on lev3.node_id = lev4.parent_node_id
 left outer join :tab_dom lev5 on lev4.node_id = lev5.parent_node_id
 
 
-where      lev1.node_type = 257           -- get us all elements
+where      lev1.node_type = 1           -- get us all elements
 and        lev1.node_name in ('calculationView')
 
 group by lev1.node_id, lev2.node_id, lev3.node_id, header.id_union;
@@ -987,7 +1084,7 @@ max(case when lev3.node_name = 'node' then replace(cast(BINTOSTR(cast(lev3.node_
 from       :tab_dom lev1
 left outer join :tab_dom lev2 on lev1.node_id = lev2.parent_node_id
 left outer join :tab_dom lev3 on lev2.node_id = lev3.parent_node_id
-where      lev1.node_type = 257           -- get us all elements
+where      lev1.node_type = 1           -- get us all elements
 and        lev1.node_name in ('calculationView')
 group by lev1.node_id
 having max(case when lev2.node_name = 'xsi:type' then cast(BINTOSTR(cast(lev2.node_value as  binary)) as varchar) end) =  'Calculation:AggregationView';
@@ -1029,7 +1126,7 @@ left outer join :tab_dom lev4 on lev3.node_id = lev4.parent_node_id
 left outer join :tab_dom lev5 on lev4.node_id = lev5.parent_node_id
 
 
-where      lev1.node_type = 257           -- get us all elements
+where      lev1.node_type = 1           -- get us all elements
 and        lev1.node_name in ('calculationView')
 
 group by lev1.node_id, lev2.node_id, lev3.node_id, header.id_aggr, header.id_type, header.id_input;
@@ -1057,7 +1154,7 @@ left outer join :tab_dom lev5 on lev4.node_id = lev5.parent_node_id
 
 
 
-where      lev1.node_type = 257          -- get us all elements
+where      lev1.node_type = 1          -- get us all elements
 and        lev1.node_name in ('calculationView')
 
 group by lev1.node_id, lev2.node_id, lev3.node_id, header.id_aggr, header.id_type, header.id_input;
@@ -1084,7 +1181,7 @@ left outer join :tab_dom lev2 on lev1.node_id = lev2.parent_node_id
 left outer join :tab_dom lev3 on lev2.node_id = lev3.parent_node_id
 left outer join :tab_dom lev4 on lev3.node_id = lev4.parent_node_id
 left outer join :tab_dom lev5 on lev4.node_id = lev5.parent_node_id
-where      lev1.node_type = 257           -- get us all elements
+where      lev1.node_type = 1           -- get us all elements
 and        lev1.node_name in ('calculationView')
 group by lev1.node_id
 having max(case when lev2.node_name = 'xsi:type' then cast(BINTOSTR(cast(lev2.node_value as  binary)) as varchar) end) =  'Calculation:RankView';
@@ -1112,7 +1209,7 @@ left outer join :tab_dom lev4 on lev3.node_id = lev4.parent_node_id
 left outer join :tab_dom lev5 on lev4.node_id = lev5.parent_node_id
 
 
-where      lev1.node_type = 257           -- get us all elements
+where      lev1.node_type = 1           -- get us all elements
 and        lev1.node_name in ('calculationView')
 
 group by lev1.node_id, lev2.node_id, lev3.node_id, header.id_rank, header.id_type, header.id_input;
@@ -1140,7 +1237,7 @@ left outer join :tab_dom lev4 on lev3.node_id = lev4.parent_node_id
 
 
 
-where      lev1.node_type = 257           -- get us all elements
+where      lev1.node_type = 1           -- get us all elements
 and        lev1.node_name in ('calculationView')
 
 group by lev1.node_id, lev2.node_id, lev3.node_id, header.id_rank, header.id_type, header.id_input;
@@ -1162,7 +1259,7 @@ left outer join :tab_dom lev2 on lev1.node_id = lev2.parent_node_id
 left outer join :tab_dom lev3 on lev2.node_id = lev3.parent_node_id
 left outer join :tab_dom lev4 on lev3.node_id = lev4.parent_node_id
 left outer join :tab_dom lev5 on lev4.node_id = lev5.parent_node_id
-where      lev1.node_type = 257           -- get us all elements
+where      lev1.node_type = 1           -- get us all elements
 and        lev1.node_name in ('logicalModel')
 group by lev1.node_id ;
 
@@ -1196,7 +1293,7 @@ left outer join :tab_dom lev4 on lev3.node_id = lev4.parent_node_id
 left outer join :tab_dom lev5 on lev4.node_id = lev5.parent_node_id
 left outer join :tab_dom lev6 on lev5.node_id = lev6.parent_node_id
 left outer join :tab_dom lev7 on lev6.node_id = lev7.parent_node_id
-where      lev1.node_type = 257           -- get us all elements
+where      lev1.node_type = 1           -- get us all elements
 and        lev1.node_name in ('logicalModel')
 group by lev1.node_id ,
            lev2.node_id ,
@@ -1204,8 +1301,101 @@ group by lev1.node_id ,
           -- lev4.node_id ,
            header.id_model;
 
-p_details = select * from :tab_list where id_field is not null;
+p_details = select id_model,
+id_field,
+ aggregationType,
+datatype,
+length,
+scale,
+formula,
+mapping,
+client,
+schemaName,
+sourceCurrency,
+targetCurrency,
+referenceDate,
+exchangeRateType,
+exceptionAggregationType,
+attributeName,
+valueFilter from :tab_list where id_field is not null;
 
 endmethod.
+
+method get_dependencies by database procedure for hdb language sqlscript options read-only
+using
+ZCL_METADATA_HANAVIEW=>GET_DETAILS
+ZCL_METADATA_HANAVIEW=>GET_DATASOURCES
+ZCL_METADATA_HANAVIEW=>GET_PROJ_HEADER
+ZCL_METADATA_HANAVIEW=>GET_JOIN_HEADER
+ZCL_METADATA_HANAVIEW=>GET_UNION_HEADER
+ZCL_METADATA_HANAVIEW=>GET_AGGR_HEADER
+ZCL_METADATA_HANAVIEW=>GET_RANK_HEADER.
+
+CALL "ZCL_METADATA_HANAVIEW=>GET_DATASOURCES"(:tab_dom, :tab_datasources);
+call "ZCL_METADATA_HANAVIEW=>GET_PROJ_HEADER"(:tab_dom, :tab_proj_header);
+call "ZCL_METADATA_HANAVIEW=>GET_JOIN_HEADER"(:tab_dom, :tab_join_header);
+call "ZCL_METADATA_HANAVIEW=>GET_UNION_HEADER"(:tab_dom, :tab_union_header);
+call "ZCL_METADATA_HANAVIEW=>GET_AGGR_HEADER"(:tab_dom, :tab_aggr_header);
+call "ZCL_METADATA_HANAVIEW=>GET_RANK_HEADER"(:tab_dom, :tab_rank_header);
+call "ZCL_METADATA_HANAVIEW=>GET_DETAILS"(:tab_dom, :tab_details);
+
+
+p_start = select distinct 'SEMANTIC' as id_step, 'SEMANTIC' AS ID_TYPE, 1 AS STEP_NM, ID_MODEL AS SOURCE from :tab_details;
+
+union_all =
+            --select id_datasource as id_step, type as id_type, '' as id_input from :tab_datasources
+           -- union
+            select id_projection as id_step, id_type, id_input from :tab_proj_header
+            union
+            select id_join as id_step, id_type, id_left as id_input from :tab_join_header
+            union
+            select id_join as id_step, id_type, id_right as id_input from :tab_join_header
+            union
+            select id_union as id_step, 'UNION' as id_type, id_input from :tab_union_header
+            union
+            select id_aggr as id_step, id_type, id_input from :tab_aggr_header
+            union
+            select id_rank as id_step, id_type, id_input from :tab_rank_header
+            UNION
+            SELECT id_step, ID_TYPE,  SOURCE as id_input FROM :p_start;
+
+
+hier =
+with tab as ( select id_projection as id_step, id_type, id_input from :tab_proj_header
+            union
+            select id_join as id_step, id_type, id_left as id_input from :tab_join_header
+            union
+            select id_join as id_step, id_type, id_right as id_input from :tab_join_header
+            union
+            select id_union as id_step, 'UNION' as id_type, id_input from :tab_union_header
+            union
+            select id_aggr as id_step, id_type, id_input from :tab_aggr_header
+            union
+            select id_rank as id_step, id_type, id_input from :tab_rank_header
+            UNION
+            SELECT id_step, ID_TYPE,  SOURCE as id_input FROM :p_start)
+select
+             hierarchy_level, hierarchy_rank, hierarchy_parent_rank, parent_id, node_id, hierarchy_tree_size
+FROM HIERARCHY
+             (
+                          SOURCE
+                                      (
+                                                   SELECT
+                                                                id_input as node_id,
+                                                                id_step as parent_id
+                                                   FROM tab
+                                      ) START WHERE id_step like '%SEMANTIC%' NO cache
+             )        ORDER BY hierarchy_level, hierarchy_rank, hierarchy_parent_rank;
+
+
+step1 =
+select :p_start.id_step , :p_start.ID_TYPE ,:p_start.STEP_NM ,:p_start.SOURCE  ,id_input from :p_start
+left outer join :union_all on :union_all.id_step = SOURCE;
+
+
+p_dependencies = select '1' as id_step,'1' as id_type,1 as step_nm, '1' as source from dummy;
+
+endmethod.
+
 
 endclass.
