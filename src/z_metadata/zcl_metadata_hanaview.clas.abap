@@ -149,6 +149,12 @@ types: begin of l_dependencies,
          value(p_error) type p_error
          value(p_strip_empty_text) type i.
 
+    class-methods p_get_parsed_snap
+        importing
+         value(p_calcview) type p_calcview
+        exporting
+         value(p_dom) type p_dom.
+
    class-methods get_variables
         importing
          value(tab_dom) type p_dom
@@ -353,6 +359,8 @@ METHOD p_decode_xml_entities BY DATABASE PROCEDURE
         v_text = v_text || '>';
       elseif v_token = 'quot' then
         v_text = v_text || '"';
+        elseif v_token = '' then
+        v_text = v_text;
       else
         signal sql_error_code 10000
         set message_text = 'Unrecognized entity '||v_token;
@@ -711,6 +719,20 @@ method p_parse_xml BY DATABASE PROCEDURE
   , len  FROM :P_DOM1;
 
 endmethod.
+
+method p_get_parsed_snap by database procedure for hdb language sqlscript options read-only using ZMETADATADOM.
+
+
+p_dom = select NODE_ID,
+PARENT_NODE_ID,
+NODE_TYPE,
+NODE_NAME,
+NODE_VALUE,
+POS,
+LEN from ZMETADATADOM where OBJECTNAME = :p_calcview;
+
+ENDMETHOD.
+
 
 method get_variables BY DATABASE PROCEDURE
                              FOR HDB

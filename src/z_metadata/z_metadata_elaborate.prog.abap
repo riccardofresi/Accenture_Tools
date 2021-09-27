@@ -2,7 +2,10 @@
 *&  Include           Z_METADATA_ELABORATE
 *&---------------------------------------------------------------------*
  if p_calc is not initial.
-    call method zcl_metadata_hanaview=>get_xml_from_hana_view
+
+   if p_vers ne 0.
+
+         call method zcl_metadata_hanaview=>get_xml_from_hana_view
       exporting
         p_calcview = p_calc
         p_version = p_vers
@@ -16,7 +19,13 @@
         p_dom              = data(p_dom)
         p_error            = data(p_error)
         p_strip_empty_text = data(p_strip_empty_text).
-
+     else.
+    call method zcl_metadata_hanaview=>p_get_parsed_snap
+     exporting
+       p_calcview = p_calc
+       importing
+         p_dom = p_dom.
+endif.
     if p_var = abap_true.
       call method zcl_metadata_hanaview=>get_variables
         exporting
