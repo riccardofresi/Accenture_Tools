@@ -74,7 +74,7 @@ types: begin of l_join_header,
        p_join_header type standard table of l_join_header with empty key.
 
 types: begin of l_join_details,
-       id_join type c length 255, id1 type c length 255, id2 type c length 255, id3 type c length 255, viewAttribute type c length 255, datatype type c length 255,
+       id_join type c length 255, viewAttribute type c length 255, datatype type c length 255,
        length type c length 255, formula type c length 255, source_left type c length 255,id_left type c length 255, source_right type c length 255,id_right type c length 255, end of l_join_details,
        p_join_details type standard table of l_join_details with empty key.
 
@@ -83,8 +83,10 @@ types: begin of l_union_header,
        p_union_header type standard table of l_union_header with empty key.
 
 types: begin of l_union_details,
-       id_union type c length 255, id1 type c length 255, id2 type c length 255, id3 type c length 255,
-       viewAttribute type c length 255, datatype type c length 255, length type c length 255, scale type c length 255, source_input type c length 900, end of l_union_details,
+       id_union type c length 255,
+       viewAttribute type c length 255, datatype type c length 255, length type c length 255, scale type c length 255,
+       id_input type c length 255,
+       source_input type c length 255, end of l_union_details,
        p_union_details type standard table of l_union_details with empty key.
 
 types: begin of l_aggr_header,
@@ -764,7 +766,7 @@ method get_datasources by database  procedure for hdb language sqlscript options
 tmp_datasources = select     lev1.node_id ,
            max(case when lev2.node_name = 'id' then cast(BINTOSTR(cast(lev2.node_value as  binary)) as varchar) end) as id_datasource,
            max(case when lev2.node_name = 'type' then cast(BINTOSTR(cast(lev2.node_value as  binary)) as varchar) end) as type,
-           max(case when lev3.node_name = '#text' then substr_after(replace(cast(BINTOSTR(cast(lev3.node_value as  binary)) as varchar) ,'/calculationviews',''), '/')end) as CalculationView,
+           max(case when lev3.node_name = '#text' then substr_after(cast(BINTOSTR(cast(lev3.node_value as  binary)) as varchar) , '/calculationviews/')end) as CalculationView,
            max(case when lev3.node_name = 'schemaName' then cast(BINTOSTR(cast(lev3.node_value as  binary)) as varchar) end) as schemaName,
            max(case when lev3.node_name = 'columnObjectName' then cast(BINTOSTR(cast(lev3.node_value as  binary)) as varchar) end) as columnObjectName
 from       :tab_dom lev1
@@ -957,7 +959,7 @@ and        lev1.node_name in ('calculationView')
 
 group by lev1.node_id, lev2.node_id, lev3.node_id, header.id_join, header.id_type;
 
-p_join_details = select a.id_join,
+p_join_details_pre = select a.id_join,
            a.id1,
            a.id2,
            a.id3,
@@ -982,6 +984,17 @@ a.length,
 a.formula,
 id_left,
  id_right;
+
+p_join_details = select id_join,
+         viewAttribute ,
+datatype,
+length,
+formula,
+source_left,
+id_left,
+source_right,
+id_right  from :p_join_details_pre;
+
 
 endmethod.
 
@@ -1060,16 +1073,36 @@ and        lev1.node_name in ('calculationView')
 
 group by lev1.node_id, lev2.node_id, lev3.node_id, header.id_union;
 
-tab_union_mapping_tmp = select a.id1, node_id, id_input, target, source, constant ,  case when length(coalesce(constant,'')) = 0 then id_input || ' (' || source || ')' else id_input || ' ( CONSTANT - ' || constant || ')' END as source_input
+--tab_union_mapping_tmp =
+--select a.id1, node_id, id_input,
+--target, source, constant ,
+--case when length(coalesce(constant,'')) = 0
+--    then id_input || ' (' || source || ')'
+--    else id_input || ' ( CONSTANT - ' || constant || ')'
+--    END as source_input
+--from :tab_union_mapping  as a inner join :tab_union_header as b on a.id1 = b.id1 AND a.id2 = b.node_id;
+
+tab_union_mapping_tmp =
+select a.id1, node_id, id_input,
+target, source, constant ,
+case when length(coalesce(constant,'')) = 0
+    then  source
+    else  constant
+    END as source_input
 from :tab_union_mapping  as a inner join :tab_union_header as b on a.id1 = b.id1 AND a.id2 = b.node_id;
 
 tab_union_mapping_tmp2 = select a.id1, target, string_agg(source_input, ',') as source_input
 from :tab_union_mapping_tmp as a
 group by    a.id1, target;
 
-p_union_details = select a.*, b.source_input
+--p_union_details = select a.*, b.source_input
+--from :tab_union_list as a
+--left outer join :tab_union_mapping_tmp2 as b on a.id1 = b.id1 and a.viewattribute = b.target
+--where viewattribute is not null or viewattribute != 'false';
+
+p_union_details = select a.id_union, a.viewAttribute, a.datatype, a.length, a.scale, id_input,  b.source_input
 from :tab_union_list as a
-left outer join :tab_union_mapping_tmp2 as b on a.id1 = b.id1 and a.viewattribute = b.target
+left outer join :tab_union_mapping_tmp as b on a.id1 = b.id1 and a.viewattribute = b.target
 where viewattribute is not null or viewattribute != 'false';
 
 endmethod.
