@@ -174,10 +174,16 @@ endif.
         importing
           p_details = data(p_details).
 
-                call method zcl_metadata_hanaview=>get_dependencies
+      call method zcl_metadata_hanaview=>get_dependencies
         exporting
           tab_dom   = p_dom
         importing
           p_dependencies = data(p_DEP).
+
+       call method zcl_metadata_hanaview=>get_dependencies_details
+        exporting
+          tab_dom   = p_dom
+        importing
+          p_dependencies_details = data(p_DEP_det).
     endif.
   endif.

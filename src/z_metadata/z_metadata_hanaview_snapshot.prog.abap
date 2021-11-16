@@ -6,7 +6,7 @@
 REPORT Z_METADATA_HANAVIEW_SNAPSHOT.
 
 
- DATA: p_calc type c length 64.
+ DATA: p_calc type c length 64, x type c LENGTH 250.
 
  data(et_odpdescr) = cl_rodps_default_context=>get_instance( i_context    = 'HANA'
                                                             i_use_buffer = 'X' )->get_odp_list( i_pattern     = ''
@@ -41,6 +41,9 @@ LOOP AT p_dom into data(l_dom).
   l_metadata-objecttype = 'CALCVIEW'.
   l_metadata-objectname = p_calc.
   MOVE-CORRESPONDING l_dom to l_metadata.
+*  l_metadata-node_value = l_metadata-node_value(1000).
+  x = l_metadata-node_value.
+  l_metadata-node_value = x.
 
   APPEND l_metadata to i_metadata.
 

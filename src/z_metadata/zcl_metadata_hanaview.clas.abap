@@ -239,6 +239,12 @@ types: begin of l_dependencies,
         exporting
          value(p_dependencies) type p_dependencies.
 
+   class-methods get_dependencies_details
+        importing
+         value(tab_dom) type p_dom
+        exporting
+         value(p_dependencies_details) type p_dependencies.
+
   protected section.
   private section.
 endclass.
@@ -1397,24 +1403,6 @@ call "ZCL_METADATA_HANAVIEW=>GET_DETAILS"(:tab_dom, :tab_details);
 
 p_start = select distinct 'SEMANTIC' as id_step, 'SEMANTIC' AS ID_TYPE, 1 AS STEP_NM, ID_MODEL AS SOURCE from :tab_details;
 
-union_all =
-            --select id_datasource as id_step, type as id_type, '' as id_input from :tab_datasources
-           -- union
-            select id_projection as id_step, id_type, id_input from :tab_proj_header
-            union
-            select id_join as id_step, id_type, id_left as id_input from :tab_join_header
-            union
-            select id_join as id_step, id_type, id_right as id_input from :tab_join_header
-            union
-            select id_union as id_step, 'UNION' as id_type, id_input from :tab_union_header
-            union
-            select id_aggr as id_step, id_type, id_input from :tab_aggr_header
-            union
-            select id_rank as id_step, id_type, id_input from :tab_rank_header
-            UNION
-            SELECT id_step, ID_TYPE,  SOURCE as id_input FROM :p_start;
-
-
 hier =
 with tab as ( select id_projection as id_step, id_type, id_input from :tab_proj_header
             union
@@ -1443,14 +1431,94 @@ FROM HIERARCHY
              )        ORDER BY hierarchy_level, hierarchy_rank, hierarchy_parent_rank;
 
 
-step1 =
-select :p_start.id_step , :p_start.ID_TYPE ,:p_start.STEP_NM ,:p_start.SOURCE  ,id_input from :p_start
-left outer join :union_all on :union_all.id_step = SOURCE;
+
 
 
 p_dependencies = select '1' as id_step,'1' as id_type,1 as step_nm, '1' as source from dummy;
 
 endmethod.
 
+
+method get_dependencies_details by database procedure for hdb language sqlscript options read-only
+using
+ZCL_METADATA_HANAVIEW=>GET_DETAILS
+ZCL_METADATA_HANAVIEW=>GET_DATASOURCES
+ZCL_METADATA_HANAVIEW=>GET_PROJ_DETAILS
+ZCL_METADATA_HANAVIEW=>GET_JOIN_DETAILS
+ZCL_METADATA_HANAVIEW=>GET_UNION_DETAILS
+ZCL_METADATA_HANAVIEW=>GET_AGGR_DETAILS
+ZCL_METADATA_HANAVIEW=>GET_RANK_DETAILS.
+
+CALL "ZCL_METADATA_HANAVIEW=>GET_DATASOURCES"(:tab_dom, :tab_datasources);
+call "ZCL_METADATA_HANAVIEW=>GET_PROJ_DETAILS"(:tab_dom, :tab_proj_details);
+call "ZCL_METADATA_HANAVIEW=>GET_JOIN_DETAILS"(:tab_dom, :tab_join_details);
+call "ZCL_METADATA_HANAVIEW=>GET_UNION_DETAILS"(:tab_dom, :tab_union_details);
+call "ZCL_METADATA_HANAVIEW=>GET_AGGR_DETAILS"(:tab_dom, :tab_aggr_details);
+call "ZCL_METADATA_HANAVIEW=>GET_RANK_DETAILS"(:tab_dom, :tab_rank_details);
+call "ZCL_METADATA_HANAVIEW=>GET_DETAILS"(:tab_dom, :tab_details);
+
+
+p_start = select distinct 'SEMANTIC' as id_step, 'SEMANTIC' AS ID_TYPE, 1 AS STEP_NM, ID_MODEL || '_' || id_field AS SOURCE from :tab_details;
+
+test = select id_projection || '_' || ID_field as id_step, 'PROJECTION' AS id_type, id_input || '_' || source as id_input from :tab_proj_details
+            union
+            select id_join || '_' || viewattribute as id_step, 'JOIN' AS id_type,
+            case when source_right is null
+            then id_left || '_' || source_left
+            else
+            id_right || '_' || source_right end as id_input from :tab_join_details
+            union
+            select id_union || '_' || viewattribute as id_step, 'UNION' as id_type,  id_input || '_' || source_input id_input from :tab_union_details
+            union
+            select id_aggr as id_step, 'AGGREGATION' AS id_type, id_input from :tab_aggr_details
+            union
+            select id_rank as id_step, 'RANK' AS id_type, id_input from :tab_rank_details
+            UNION
+            SELECT id_step, ID_TYPE,  SOURCE as id_input FROM :p_start;
+
+
+join_test = select id_join || '_' || viewattribute as id_step, 'JOIN' AS id_type,
+            case when coalesce(source_right,'') != ''
+            then id_left || '_' || source_left
+            else
+            id_right || '_' || source_right end as id_input,
+            coalesce( source_right,'0'),
+            concat( source_right, '0') from :tab_join_details;
+
+hier =
+with tab as ( select id_projection || '_' || ID_field as id_step, 'PROJECTION' AS id_type, id_input || '_' || source as id_input from :tab_proj_details
+            union
+            select id_join || '_' || viewattribute as id_step, 'JOIN' AS id_type,
+            case when source_right IS NULL
+            then id_left || '_' || source_left
+            else
+            id_right || '_' || source_right end as id_input from :tab_join_details
+            union
+            select id_union || '_' || viewattribute as id_step, 'UNION' as id_type,  id_input || '_' || source_input id_input from :tab_union_details
+            union
+            select id_aggr as id_step, 'AGGREGATION' AS id_type, id_input from :tab_aggr_details
+            union
+            select id_rank as id_step, 'RANK' AS id_type, id_input from :tab_rank_details
+            UNION
+            SELECT id_step, ID_TYPE,  SOURCE as id_input FROM :p_start)
+select
+             hierarchy_level, hierarchy_rank, hierarchy_parent_rank, parent_id, node_id, hierarchy_tree_size
+FROM HIERARCHY
+             (
+                          SOURCE
+                                      (
+                                                   SELECT
+                                                                id_input as node_id,
+                                                                id_step as parent_id
+                                                   FROM tab
+                                      ) START WHERE id_step like '%SEMANTIC%' NO cache
+             )        ORDER BY hierarchy_level, hierarchy_rank, hierarchy_parent_rank;
+
+
+
+
+p_dependencies_details = select '1' as id_step,'1' as id_type,1 as step_nm, '1' as source from dummy;
+
+endmethod.
 
 endclass.

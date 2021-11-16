@@ -7,15 +7,18 @@ define view Z_HANA_VIEW_VARIABLES
 
 as select 
 from zmetadatadom as lev1
-left outer join zmetadatadom lev2 on lev1.node_id = lev2.parent_node_id
+ left outer join zmetadatadom lev2 on lev1.node_id = lev2.parent_node_id
+and lev1.objectname = lev2.objectname
 left outer join zmetadatadom lev3 on lev2.node_id = lev3.parent_node_id
+and lev2.objectname = lev3.objectname
 left outer join zmetadatadom lev4 on lev3.node_id = lev4.parent_node_id
+and lev3.objectname = lev4.objectname
 left outer join zmetadatadom lev5 on lev4.node_id = lev5.parent_node_id 
+and lev4.objectname = lev5.objectname
  {
 lev1.objectname as CalculationView,
 lev1.node_id as id1,
-
-           max(case when lev2.node_name = 'id' then lev2.node_value else '' end) as id_variable,
+           max(case when lev2.node_name = 'id' then lev2.node_name else '' end) as id_variable,
            max(case when lev3.node_name = 'datatype' then lev3.node_value else '' end) as datatype,
            max(case when lev3.node_name = 'length' then lev3.node_value else '' end) as length,
            max(case when lev3.node_name = 'defaultValue' then lev3.node_value else '' end) as defaultValue,
